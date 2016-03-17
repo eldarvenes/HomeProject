@@ -13,7 +13,7 @@ import java.sql.SQLException;
 /**
  * Created by remote on 13.03.2016.
  */
-public class StoreDataMysqlImpl implements StoreData{
+public class StoreDataMysqlImpl {
     public void write(String kwhTotal) {
         //TODO implement store to mysql
         /**try {

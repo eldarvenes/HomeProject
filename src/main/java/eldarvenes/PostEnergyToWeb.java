@@ -83,7 +83,6 @@ public class PostEnergyToWeb implements Job {
 		epost.setSubject("Automatisk registrering av strømavlesing til kundeweb");
 
 	}
-
 	public void execute(JobExecutionContext context)
 			throws JobExecutionException {
 		try {
