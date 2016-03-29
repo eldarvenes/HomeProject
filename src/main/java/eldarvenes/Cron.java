@@ -28,10 +28,10 @@ public class Cron {
             JobDetail sendReport = newJob(SendReport.class).withIdentity("sendReport", "group1")
                     .build();
 
-            JobDetail saveReportToWeb = newJob(PostEnergyToWeb.class).withIdentity("saveReportToWeb", "group1")
+            JobDetail saveReportToWeb = newJob(HtmlPostEneryToWeb.class).withIdentity("saveReportToWeb", "group1")
                     .build();
 
-            //Kvar time lagre til fil
+            //Kvar minutt lagre til fil
             Trigger trigger_lagre_til_fil = newTrigger()
                     .withIdentity("trigger_lagre_til_fil")
                     .startNow()
@@ -56,7 +56,7 @@ public class Cron {
             Trigger trigger_saveReportToWeb = newTrigger()
                     .withIdentity("trigger_saveReportToWeb", "group1")
                     .startNow()
-                    .withSchedule(cronSchedule("0 0 0 1 * ?"))
+                    .withSchedule(cronSchedule("0 0 * * * ?"))
                     .build();
 
             System.out.println("Scheduler Started...");
@@ -64,7 +64,7 @@ public class Cron {
             scheduler.scheduleJob(lagre_til_fil, trigger_lagre_til_fil);
             //scheduler.scheduleJob(storeKwh, trigger_storeKwh);
             //scheduler.scheduleJob(sendReport, trigger_sendReport);
-            //scheduler.scheduleJob(saveReportToWeb, trigger_saveReportToWeb);
+            scheduler.scheduleJob(saveReportToWeb, trigger_saveReportToWeb);
 
             //scheduler.shutdown();
             //System.out.println("Scheduler Stopped..");

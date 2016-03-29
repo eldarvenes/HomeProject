@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Properties;
 
 /**
@@ -52,6 +54,19 @@ public class ReadFromYouless {
 
         return valuekwh;
 
+    }
+
+    public String getTotalKwhAsString(){
+        return getStringValueNullDecimals(getTotalKwhFromYouLess());
+    }
+
+    private String getStringValueNullDecimals(double kwh){
+
+        NumberFormat nf = DecimalFormat.getInstance();
+        nf.setMaximumFractionDigits(0);
+        String str = nf.format(kwh);
+
+        return str.replace('\u00A0',' ').replaceAll("\\s","");
     }
 
     private void loadProperties() {
