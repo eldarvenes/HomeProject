@@ -11,4 +11,9 @@ public class ReadFromYoulessTest extends TestCase {
         ReadFromYouless rfyl = new ReadFromYouless();
         System.out.println(rfyl.getTotalKwhFromYouLess());
     }
+
+    public void testGetTotalKwhFromYouLessAsString() {
+        ReadFromYouless rfyl = new ReadFromYouless();
+        System.out.println(String.valueOf(rfyl.getTotalKwhAsString()));
+    }
 }

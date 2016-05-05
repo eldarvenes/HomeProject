@@ -3,11 +3,17 @@ package eldarvenes;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -37,13 +43,17 @@ public class HtmlPostEneryToWeb implements Job{
     String p_pass;
 
     ReadFromYouless rfyl = new ReadFromYouless();
-    String maalerstand = String.valueOf(rfyl.getTotalKwhAsString());
+    //String maalerstand = rfyl.getTotalKwhAsString();
 
     String loginResult = "";
     private final String USER_AGENT = "Mozilla/5.0";
 
+
+
     HttpClient client = HttpClientBuilder.create()
-            .setRedirectStrategy(new LaxRedirectStrategy()).build();
+            .setRedirectStrategy(new LaxRedirectStrategy())
+            .build();
+
 
     public HtmlPostEneryToWeb(){
         loadProperties();
@@ -69,11 +79,17 @@ public class HtmlPostEneryToWeb implements Job{
         return str;
     }
 
-    private void login() throws Exception {
+    public void login() throws Exception {
         String urlLogin = "https://kundeweb.sognekraft.no/pls/kundeweb_sognekraft/webuser.login.login_submit";
-        HttpPost post = new HttpPost(urlLogin);
+        HttpPost request = new HttpPost(urlLogin);
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setSocketTimeout(5000)
+                .setConnectTimeout(5000)
+                .setConnectionRequestTimeout(5000)
+                .build();
 
-        post.setHeader("User-Agent", USER_AGENT);
+        request.setConfig(requestConfig);
+        request.setHeader("User-Agent", USER_AGENT);
 
         List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
         urlParameters.add(new BasicNameValuePair("p_navn", p_name));
@@ -82,9 +98,9 @@ public class HtmlPostEneryToWeb implements Job{
         urlParameters.add(new BasicNameValuePair("p_kundetype", "1"));
         urlParameters.add(new BasicNameValuePair("p_tilprosedyre", ""));
 
-        post.setEntity(new UrlEncodedFormEntity(urlParameters));
+        request.setEntity(new UrlEncodedFormEntity(urlParameters));
 
-        HttpResponse response = client.execute(post);
+        HttpResponse response = client.execute(request);
 
         BufferedReader rd = new BufferedReader(
                 new InputStreamReader(response.getEntity().getContent()));
@@ -96,16 +112,17 @@ public class HtmlPostEneryToWeb implements Job{
             result.append(line);
         }
         loginResult = result.toString();
-        sendAvlesing();
-        godkjennAvlesing();
     }
 
-    private void sendAvlesing() throws Exception {
+    public void sendAvlesing() throws Exception {
         String dato = new SimpleDateFormat("dd.MM.yyyy").format(new Date());
 
         String urlAvlesning = "https://kundeweb.sognekraft.no/pls/kundeweb_sognekraft/webuser.avlesning.submit";
 
         HttpPost post = new HttpPost(urlAvlesning);
+
+        String maalerstand = rfyl.getTotalKwhAsString();
+        maalerstand = maalerstand.replace(",", "");
 
         List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
         urlParameters.add(new BasicNameValuePair("p_session_id", getSessionId(loginResult)));
@@ -127,7 +144,7 @@ public class HtmlPostEneryToWeb implements Job{
         }
     }
 
-    private void godkjennAvlesing() throws Exception {
+    public void godkjennAvlesing() throws Exception {
 
         String urlAvlesning = "https://kundeweb.sognekraft.no/pls/kundeweb_sognekraft/webuser.godkjenn_avlesning.submit";
 
@@ -150,6 +167,7 @@ public class HtmlPostEneryToWeb implements Job{
         while ((line = rd.readLine()) != null) {
             result.append(line);
         }
+
     }
 
     public String getSessionId(String textToSearchIn) {
@@ -163,10 +181,12 @@ public class HtmlPostEneryToWeb implements Job{
 
     public void register(){
         try {
+            System.out.println("Starter registrering til web...");
             getLoginPage();
             login();
             sendAvlesing();
             godkjennAvlesing();
+            System.out.println("Registrering til web ferdig");
         } catch (IOException e) {
             e.printStackTrace();
         } catch (Exception e) {

@@ -10,5 +10,8 @@ public class Store implements Job {
 	public void execute(JobExecutionContext arg0) throws JobExecutionException {
 		StoreDataFile storeToFile = new StoreDataFile();
 		storeToFile.write(String.valueOf(rfy.getTotalKwhFromYouLess()));
+
+
+
 	}
 }
